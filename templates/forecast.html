@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CRAFT — Demand Forecast</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; background: #f7f8fa; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    .controls { margin-bottom: 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    label { font-weight: bold; margin-right: 4px; }
+    select, input, button { padding: 6px 10px; }
+    button { background: #2980b9; color: white; border: none; cursor: pointer; border-radius: 4px; }
+    button:hover { background: #1f6391; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Demand Forecast — Baseline vs CRAFT Causal</h2>
+
+  <div class="controls">
+    <label for="skuSelect">SKU</label>
+    <select id="skuSelect">
+      {% for sku in skus %}
+      <option value="{{ sku }}">{{ sku }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="horizonInput">Horizon (days)</label>
+    <input type="number" id="horizonInput" value="30" min="7" max="90" />
+
+    <button id="loadForecastBtn">Load Forecast</button>
+  </div>
+
+  {% if simulate_mode %}
+  <div class="controls">
+    <label for="disruptionType">Disruption Type</label>
+    <select id="disruptionType">
+      <option value="demand_spike">Demand Spike</option>
+      <option value="demand_drop">Demand Drop</option>
+      <option value="supply_delay">Supply Delay</option>
+    </select>
+
+    <label for="startOffset">Start Offset (days)</label>
+    <input type="number" id="startOffset" value="5" min="0" />
+
+    <label for="duration">Duration (days)</label>
+    <input type="number" id="duration" value="14" min="1" />
+
+    <label for="magnitude">Magnitude (0-1)</label>
+    <input type="number" id="magnitude" value="0.5" min="0" max="1" step="0.05" />
+
+    <button id="simulateBtn">Simulate Disruption</button>
+  </div>
+  {% endif %}
+
+  <canvas id="forecastChart" width="900" height="400"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+let chartInstance = null;
+
+function renderChart(labels, historyDates, historyValues, baseline, causal) {
+  const ctx = document.getElementById('forecastChart').getContext('2d');
+  if (chartInstance) { chartInstance.destroy(); }
+
+  const allLabels = historyDates.concat(labels);
+  const historyPadded = historyValues.concat(new Array(labels.length).fill(null));
+  const baselinePadded = new Array(historyDates.length).fill(null).concat(baseline);
+  const causalPadded = new Array(historyDates.length).fill(null).concat(causal);
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: allLabels,
+      datasets: [
+        { label: 'Actual (History)', data: historyPadded, borderColor: '#333333', fill: false, tension: 0.2 },
+        { label: 'Baseline (Correlational)', data: baselinePadded, borderColor: '#e74c3c', fill: false, tension: 0.2 },
+        { label: 'CRAFT (Causal)', data: causalPadded, borderColor: '#2980b9', fill: false, tension: 0.2 }
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { x: { ticks: { maxTicksLimit: 15 } } } }
+  });
+}
+
+document.getElementById('loadForecastBtn').addEventListener('click', function () {
+  const sku = document.getElementById('skuSelect').value;
+  const horizon = document.getElementById('horizonInput').value;
+
+  fetch(`/api/forecast?sku_id=${sku}&horizon=${horizon}`)
+    .then(res => res.json())
+    .then(data => {
+      renderChart(data.forecast_dates, data.history.dates, data.history.actual_demand, data.baseline_forecast, data.causal_forecast);
+    });
+});
+
+
+document.getElementById('simulateBtn').addEventListener('click', function () {
+  const sku = document.getElementById('skuSelect').value;
+  const horizon = document.getElementById('horizonInput').value;
+  const disruption_type = document.getElementById('disruptionType').value;
+  const start_offset = document.getElementById('startOffset').value;
+  const duration = document.getElementById('duration').value;
+  const magnitude = document.getElementById('magnitude').value;
+
+  fetch('/api/simulate-disruption', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sku_id: sku, disruption_type: disruption_type,
+      start_offset: parseInt(start_offset), duration: parseInt(duration),
+      magnitude: parseFloat(magnitude), horizon: parseInt(horizon)
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      renderChart(data.forecast_dates, [], [], data.baseline_forecast, data.causal_forecast);
+    });
+});
+
+</script>
+</body>
+</html>

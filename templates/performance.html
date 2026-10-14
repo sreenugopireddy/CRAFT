@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CRAFT — Model Performance</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; background: #f7f8fa; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    table.performance-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: white; }
+    table.performance-table th, table.performance-table td {
+      border: 1px solid #ddd; padding: 10px 14px; text-align: left;
+    }
+    table.performance-table th { background: #2980b9; color: white; }
+    table.performance-table tr:nth-child(even) { background: #f2f2f2; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Model Performance — Baseline vs CRAFT Causal</h2>
+
+  <table class="performance-table">
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th>Baseline (Correlational)</th>
+        <th>CRAFT (Causal)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Overall MAPE (%)</td>
+        <td>{{ "%.2f"|format(metrics.baseline_correlational.test.overall_mape) }}</td>
+        <td>{{ "%.2f"|format(metrics.craft_causal.test.overall_mape) }}</td>
+      </tr>
+      <tr>
+        <td>Overall RMSE</td>
+        <td>{{ "%.2f"|format(metrics.baseline_correlational.test.overall_rmse) }}</td>
+        <td>{{ "%.2f"|format(metrics.craft_causal.test.overall_rmse) }}</td>
+      </tr>
+      <tr>
+        <td>Normal Period MAPE (%)</td>
+        <td>{{ "%.2f"|format(metrics.baseline_correlational.test.normal_period_mape) if metrics.baseline_correlational.test.normal_period_mape is not none else "N/A" }}</td>
+        <td>{{ "%.2f"|format(metrics.craft_causal.test.normal_period_mape) if metrics.craft_causal.test.normal_period_mape is not none else "N/A" }}</td>
+      </tr>
+      <tr>
+        <td>Disruption Period MAPE (%)</td>
+        <td>{{ "%.2f"|format(metrics.baseline_correlational.test.disruption_period_mape) if metrics.baseline_correlational.test.disruption_period_mape is not none else "N/A" }}</td>
+        <td>{{ "%.2f"|format(metrics.craft_causal.test.disruption_period_mape) if metrics.craft_causal.test.disruption_period_mape is not none else "N/A" }}</td>
+      </tr>
+      <tr>
+        <td>Disruption Period RMSE</td>
+        <td>{{ "%.2f"|format(metrics.baseline_correlational.test.disruption_period_rmse) if metrics.baseline_correlational.test.disruption_period_rmse is not none else "N/A" }}</td>
+        <td>{{ "%.2f"|format(metrics.craft_causal.test.disruption_period_rmse) if metrics.craft_causal.test.disruption_period_rmse is not none else "N/A" }}</td>
+      </tr>
+      <tr>
+        <td>Recovery Speed (timesteps)</td>
+        <td>{{ "%.2f"|format(metrics.baseline_correlational.test.recovery_speed_timesteps) if metrics.baseline_correlational.test.recovery_speed_timesteps is not none else "N/A" }}</td>
+        <td>{{ "%.2f"|format(metrics.craft_causal.test.recovery_speed_timesteps) if metrics.craft_causal.test.recovery_speed_timesteps is not none else "N/A" }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <canvas id="metricsChart" width="800" height="350"></canvas>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const ctx = document.getElementById('metricsChart').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['Overall MAPE', 'Disruption MAPE', 'Recovery Speed'],
+    datasets: [
+      {
+        label: 'Baseline (Correlational)',
+        data: [
+          {{ metrics.baseline_correlational.test.overall_mape }},
+          {{ metrics.baseline_correlational.test.disruption_period_mape or 0 }},
+          {{ metrics.baseline_correlational.test.recovery_speed_timesteps or 0 }}
+        ],
+        backgroundColor: '#e74c3c'
+      },
+      {
+        label: 'CRAFT (Causal)',
+        data: [
+          {{ metrics.craft_causal.test.overall_mape }},
+          {{ metrics.craft_causal.test.disruption_period_mape or 0 }},
+          {{ metrics.craft_causal.test.recovery_speed_timesteps or 0 }}
+        ],
+        backgroundColor: '#2980b9'
+      }
+    ]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'top' } } }
+});
+</script>
+</body>
+</html>

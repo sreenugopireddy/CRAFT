@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CRAFT — Causal Graph</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; background: #f7f8fa; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    #causal-graph-container { background: white; border: 1px solid #ddd; border-radius: 6px; }
+    ul { background: white; padding: 16px 30px; border: 1px solid #ddd; border-radius: 6px; }
+    li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Structural Causal Model — Demand Drivers</h2>
+
+  <div id="causal-graph-container" style="width: 100%; height: 500px;"></div>
+
+  <h3>Validated Causal Features</h3>
+  <ul>
+    {% for feature in graph_data.causal_features %}
+    <li>{{ feature }}</li>
+    {% endfor %}
+  </ul>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/standalone/umd/vis-network.min.js"></script>
+<script>
+const graphData = {{ graph_data | tojson }};
+
+const nodeNames = new Set();
+graphData.edges.forEach(e => {
+  nodeNames.add(e.source);
+  nodeNames.add(e.target);
+});
+
+const nodes = Array.from(nodeNames).map((name) => ({
+  id: name,
+  label: name,
+  color: graphData.causal_features.includes(name) ? '#2980b9' : '#bdc3c7'
+}));
+
+const edges = graphData.edges.map(e => ({ from: e.source, to: e.target, arrows: 'to' }));
+
+const container = document.getElementById('causal-graph-container');
+const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+const options = { layout: { hierarchical: false }, physics: { stabilization: true } };
+new vis.Network(container, data, options);
+</script>
+</body>
+</html>

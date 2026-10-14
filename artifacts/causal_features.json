@@ -1,0 +1,58 @@
+{
+  "causal_features": [
+    "price",
+    "lead_time",
+    "inventory_level",
+    "disruption_indicator",
+    "severity_level"
+  ],
+  "candidate_features": [
+    "price",
+    "promotion_flag",
+    "lead_time",
+    "inventory_level",
+    "spurious_noise_feature",
+    "disruption_indicator",
+    "severity_level",
+    "marketing_spend_proxy",
+    "competitor_price_index"
+  ],
+  "diagnostics": {
+    "price": {
+      "is_causal": true,
+      "effect_estimate": -1.5081231201870366
+    },
+    "promotion_flag": {
+      "is_causal": false,
+      "effect_estimate": 1.1205187854220497
+    },
+    "lead_time": {
+      "is_causal": true,
+      "effect_estimate": 0.1320095169051001
+    },
+    "inventory_level": {
+      "is_causal": true,
+      "effect_estimate": 0.002565628953576038
+    },
+    "spurious_noise_feature": {
+      "is_causal": false,
+      "effect_estimate": 0.0
+    },
+    "disruption_indicator": {
+      "is_causal": true,
+      "effect_estimate": -3.849402168605941
+    },
+    "severity_level": {
+      "is_causal": true,
+      "effect_estimate": 12.129674347602716
+    },
+    "marketing_spend_proxy": {
+      "is_causal": false,
+      "effect_estimate": 0.0
+    },
+    "competitor_price_index": {
+      "is_causal": false,
+      "effect_estimate": 0.0
+    }
+  }
+}

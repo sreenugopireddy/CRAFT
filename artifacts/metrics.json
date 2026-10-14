@@ -1,0 +1,52 @@
+{
+  "baseline_correlational": {
+    "features_used": [
+      "price",
+      "promotion_flag",
+      "lead_time",
+      "inventory_level",
+      "spurious_noise_feature",
+      "marketing_spend_proxy",
+      "competitor_price_index",
+      "disruption_indicator",
+      "severity_level",
+      "day_of_week",
+      "month",
+      "lag_1",
+      "lag_7",
+      "rolling_mean_7"
+    ],
+    "test": {
+      "overall_mape": 13.666667695268536,
+      "overall_rmse": 9.03604514564695,
+      "normal_period_mape": 12.305731962356823,
+      "normal_period_rmse": 7.8265239290139945,
+      "disruption_period_mape": 35.66292978493105,
+      "disruption_period_rmse": 20.28044960800583,
+      "recovery_speed_timesteps": 23.0
+    }
+  },
+  "craft_causal": {
+    "features_used": [
+      "price",
+      "lead_time",
+      "inventory_level",
+      "disruption_indicator",
+      "severity_level",
+      "day_of_week",
+      "month",
+      "lag_1",
+      "lag_7",
+      "rolling_mean_7"
+    ],
+    "test": {
+      "overall_mape": 12.769077946546007,
+      "overall_rmse": 8.930655644543041,
+      "normal_period_mape": 11.179726612452694,
+      "normal_period_rmse": 7.317331939119264,
+      "disruption_period_mape": 38.45713040327372,
+      "disruption_period_rmse": 22.437271359541736,
+      "recovery_speed_timesteps": 21.5
+    }
+  }
+}
